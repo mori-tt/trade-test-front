@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-  pull_request:
   workflow_dispatch: # 手動実行を許可
 
 env:
@@ -37,13 +36,6 @@ jobs:
         run: npm install -g firebase-tools
 
       - name: Deploy to Firebase Hosting
-        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         run: firebase deploy --only hosting --token "${{ secrets.FIREBASE_TOKEN }}" --non-interactive
-        env:
-          FIREBASE_PROJECT: ${{ secrets.FIREBASE_PROJECT_ID }}
-
-      - name: Deploy to Firebase Hosting Preview Channel
-        if: github.event_name == 'pull_request'
-        run: firebase hosting:channel:deploy pr-${{ github.event.pull_request.number }} --token "${{ secrets.FIREBASE_TOKEN }}" --non-interactive
         env:
           FIREBASE_PROJECT: ${{ secrets.FIREBASE_PROJECT_ID }}
