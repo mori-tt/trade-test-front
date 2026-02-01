@@ -5,7 +5,7 @@ import { TradingResults, StrategyDetails } from "./Results";
 
 import { getApiUrl } from "../config";
 
-function TradingAnalysis() {
+function TradingAnalysis({ user, token }) {
   const [nlLoading, setNlLoading] = useState(false);
   const [nlResults, setNlResults] = useState(null);
   const [currentStrategyData, setCurrentStrategyData] = useState(null);
@@ -32,9 +32,14 @@ function TradingAnalysis() {
     setNlLoading(true);
     setNlResults(null);
     try {
+      const headers = { "Content-Type": "application/json" };
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
       const response = await fetch(getApiUrl("/api/strategy/load-and-test"), {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: headers,
         body: JSON.stringify({ strategy_id: strategyId }),
       });
       const data = await response.json();
@@ -55,7 +60,14 @@ function TradingAnalysis() {
 
   const handleShowCode = async (strategyId) => {
     try {
-      const response = await fetch(getApiUrl(`/api/strategy/${strategyId}`));
+      const headers = {};
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
+      const response = await fetch(getApiUrl(`/api/strategy/${strategyId}`), {
+        headers: headers,
+      });
       const data = await response.json();
       if (data.success) {
         const strategy = data.strategy;
@@ -521,9 +533,14 @@ function TradingAnalysis() {
         }
       }
 
+      const headers = { "Content-Type": "application/json" };
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
       const response = await fetch(getApiUrl("/api/strategy/save"), {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: headers,
         body: JSON.stringify({
           name: name,
           code: currentStrategyData.generated_code,
@@ -655,7 +672,14 @@ function TradingAnalysis() {
   useEffect(() => {
     const loadSavedStrategies = async () => {
       try {
-        const response = await fetch(getApiUrl("/api/strategy/list"));
+        const headers = {};
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+
+        const response = await fetch(getApiUrl("/api/strategy/list"), {
+          headers: headers,
+        });
         const data = await response.json();
         if (data.success) {
           setSavedStrategies(data.strategies || []);
