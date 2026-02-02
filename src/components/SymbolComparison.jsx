@@ -232,11 +232,20 @@ function SymbolComparison({ user, token }) {
         body: JSON.stringify(requestBody),
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
 
       if (data.success) {
         alert("比較結果を保存しました");
         setComparisonName(""); // リセット
+      } else if (response.status === 401) {
+        // 認証エラー時はトークンを破棄して再ログインを促す
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("user");
+        alert(
+          "ログインの有効期限が切れたか、認証に失敗しました。再度ログインしてください。\n" +
+            (data.detail ? `\n詳細: ${data.detail}` : "")
+        );
+        window.location.reload();
       } else {
         alert("エラー: " + (data.detail || "不明なエラー"));
       }
