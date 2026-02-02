@@ -47,9 +47,10 @@ function SymbolComparison({ user, token }) {
 
   const loadSavedStrategies = async () => {
     try {
+      const tokenToUse = token || localStorage.getItem("access_token");
       const headers = {};
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
+      if (tokenToUse) {
+        headers.Authorization = `Bearer ${tokenToUse}`;
       }
 
       const response = await fetch(getApiUrl("/api/strategy/list"), {
@@ -66,7 +67,9 @@ function SymbolComparison({ user, token }) {
 
   const loadExistingStrategies = async () => {
     try {
-      const response = await fetch(getApiUrl("/api/trading/available-strategies"));
+      const response = await fetch(
+        getApiUrl("/api/trading/available-strategies")
+      );
       const data = await response.json();
       if (data.success) {
         setExistingStrategies(data.strategies);
@@ -86,7 +89,9 @@ function SymbolComparison({ user, token }) {
 
   const handleExistingStrategyToggle = (strategyId) => {
     if (existingStrategyIds.includes(strategyId)) {
-      setExistingStrategyIds(existingStrategyIds.filter((id) => id !== strategyId));
+      setExistingStrategyIds(
+        existingStrategyIds.filter((id) => id !== strategyId)
+      );
     } else {
       setExistingStrategyIds([...existingStrategyIds, strategyId]);
     }
@@ -152,10 +157,11 @@ function SymbolComparison({ user, token }) {
     setComparisonName(""); // リセット
 
     try {
-      const headers = { "Content-Type": "application/json" };
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
+      const tokenToUse = token || localStorage.getItem("access_token");
+      const headers = {
+        "Content-Type": "application/json",
+        ...(tokenToUse && { Authorization: `Bearer ${tokenToUse}` }),
+      };
 
       const requestBody = {
         symbols: allSymbols,
@@ -197,7 +203,9 @@ function SymbolComparison({ user, token }) {
       return;
     }
 
-    if (!user || !token) {
+    // トークンは props と localStorage の両方から取得（本番で state が遅延する場合に備える）
+    const tokenToUse = token || localStorage.getItem("access_token");
+    if (!user || !tokenToUse) {
       alert("ログインが必要です");
       return;
     }
@@ -205,10 +213,10 @@ function SymbolComparison({ user, token }) {
     setSaving(true);
 
     try {
-      const headers = { "Content-Type": "application/json" };
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
+      const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${tokenToUse}`,
+      };
 
       const requestBody = {
         name: comparisonName.trim(),
@@ -242,9 +250,7 @@ function SymbolComparison({ user, token }) {
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
       <h2 className="text-2xl font-bold mb-4 text-gray-800">銘柄毎比較</h2>
-      <p className="text-gray-600 mb-6">
-        複数の戦略を複数の銘柄で比較します
-      </p>
+      <p className="text-gray-600 mb-6">複数の戦略を複数の銘柄で比較します</p>
 
       <form onSubmit={handleSubmit}>
         {/* 戦略選択 */}
@@ -263,7 +269,10 @@ function SymbolComparison({ user, token }) {
                 <p className="text-gray-500 text-sm">読み込み中...</p>
               ) : (
                 existingStrategies.map((s) => (
-                  <label key={s.id} className="flex items-center p-2 hover:bg-gray-50 cursor-pointer">
+                  <label
+                    key={s.id}
+                    className="flex items-center p-2 hover:bg-gray-50 cursor-pointer"
+                  >
                     <input
                       type="checkbox"
                       checked={existingStrategyIds.includes(s.id)}
@@ -287,10 +296,15 @@ function SymbolComparison({ user, token }) {
             </h3>
             <div className="max-h-60 overflow-y-auto border rounded p-2">
               {savedStrategies.length === 0 ? (
-                <p className="text-gray-500 text-sm">保存された戦略がありません</p>
+                <p className="text-gray-500 text-sm">
+                  保存された戦略がありません
+                </p>
               ) : (
                 savedStrategies.map((s) => (
-                  <label key={s.id} className="flex items-center p-2 hover:bg-gray-50 cursor-pointer">
+                  <label
+                    key={s.id}
+                    className="flex items-center p-2 hover:bg-gray-50 cursor-pointer"
+                  >
                     <input
                       type="checkbox"
                       checked={savedStrategyIds.includes(s.id)}
@@ -332,7 +346,10 @@ function SymbolComparison({ user, token }) {
             </h3>
             <div className="max-h-60 overflow-y-auto border rounded p-2 grid grid-cols-2 gap-2">
               {AVAILABLE_SYMBOLS.map((symbol) => (
-                <label key={symbol.value} className="flex items-center p-2 hover:bg-gray-50 cursor-pointer">
+                <label
+                  key={symbol.value}
+                  className="flex items-center p-2 hover:bg-gray-50 cursor-pointer"
+                >
                   <input
                     type="checkbox"
                     checked={selectedSymbols.includes(symbol.value)}
@@ -358,7 +375,9 @@ function SymbolComparison({ user, token }) {
                 <input
                   type="text"
                   value={symbol}
-                  onChange={(e) => handleCustomSymbolChange(index, e.target.value)}
+                  onChange={(e) =>
+                    handleCustomSymbolChange(index, e.target.value)
+                  }
                   placeholder="例: ^GSPC, AAPL, 7203.T"
                   className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 />
@@ -429,12 +448,12 @@ function SymbolComparison({ user, token }) {
       {results && results.success && (
         <div className="mt-8">
           <h3 className="text-xl font-semibold mb-4">比較結果</h3>
-          
+
           {/* 全銘柄の結果を表示 */}
           {results.all_results && results.all_results.length > 0 && (
             <div className="mb-8">
               <h4 className="text-lg font-semibold mb-4">全銘柄の分析結果</h4>
-              
+
               {/* 銘柄毎に結果をグループ化 */}
               {(() => {
                 // 銘柄でグループ化
@@ -446,75 +465,85 @@ function SymbolComparison({ user, token }) {
                   groupedBySymbol[r.symbol].push(r);
                 });
 
-                return Object.entries(groupedBySymbol).map(([symbol, symbolResults]) => {
-                  // 成功した結果のみをフィルタ
-                  const successfulResults = symbolResults.filter((r) => r.success);
-                  const errorResults = symbolResults.filter((r) => !r.success);
+                return Object.entries(groupedBySymbol).map(
+                  ([symbol, symbolResults]) => {
+                    // 成功した結果のみをフィルタ
+                    const successfulResults = symbolResults.filter(
+                      (r) => r.success
+                    );
+                    const errorResults = symbolResults.filter(
+                      (r) => !r.success
+                    );
 
-                  if (successfulResults.length === 0) {
+                    if (successfulResults.length === 0) {
+                      return (
+                        <div key={symbol} className="mb-8">
+                          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg text-red-700">
+                            <h5 className="text-lg font-semibold mb-2">
+                              {symbol}
+                            </h5>
+                            <p>すべての戦略でエラーが発生しました:</p>
+                            <ul className="list-disc list-inside mt-2">
+                              {errorResults.map((r, idx) => (
+                                <li key={idx}>
+                                  {r.strategy_name || "不明な戦略"}: {r.error}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    // 比較結果の形式に変換
+                    const comparison = successfulResults.map((r) => ({
+                      strategy_name: r.strategy_name || "不明な戦略",
+                      total_trades: r.results?.total_trades || 0,
+                      win_rate: r.results?.win_rate || null,
+                      expected_value: r.results?.expected_value || null,
+                      total_return: r.results?.total_return || null,
+                      sharpe_ratio: r.results?.sharpe_ratio || null,
+                    }));
+
                     return (
                       <div key={symbol} className="mb-8">
-                        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg text-red-700">
-                          <h5 className="text-lg font-semibold mb-2">{symbol}</h5>
-                          <p>すべての戦略でエラーが発生しました:</p>
-                          <ul className="list-disc list-inside mt-2">
-                            {errorResults.map((r, idx) => (
-                              <li key={idx}>
-                                {r.strategy_name || "不明な戦略"}: {r.error}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
+                        <h5 className="text-2xl font-bold text-indigo-600 mb-4">
+                          {symbol} の戦略比較結果
+                        </h5>
+
+                        {/* エラーがある場合は表示 */}
+                        {errorResults.length > 0 && (
+                          <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-lg mb-4">
+                            <p className="font-semibold text-yellow-800 mb-2">
+                              エラーが発生した戦略:
+                            </p>
+                            <ul className="list-disc list-inside text-yellow-700">
+                              {errorResults.map((r, idx) => (
+                                <li key={idx}>
+                                  {r.strategy_name || "不明な戦略"}: {r.error}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {/* 比較テーブルのみ表示（最適な戦略の詳細は表示しない） */}
+                        <TradingResults
+                          data={{
+                            success: true,
+                            period_years: results.period_years,
+                            comparison: comparison,
+                            best_strategy: null, // 最適な戦略は表示しない
+                          }}
+                        />
                       </div>
                     );
                   }
-
-                  // 比較結果の形式に変換
-                  const comparison = successfulResults.map((r) => ({
-                    strategy_name: r.strategy_name || "不明な戦略",
-                    total_trades: r.results?.total_trades || 0,
-                    win_rate: r.results?.win_rate || null,
-                    expected_value: r.results?.expected_value || null,
-                    total_return: r.results?.total_return || null,
-                    sharpe_ratio: r.results?.sharpe_ratio || null,
-                  }));
-
-                  return (
-                    <div key={symbol} className="mb-8">
-                      <h5 className="text-2xl font-bold text-indigo-600 mb-4">
-                        {symbol} の戦略比較結果
-                      </h5>
-                      
-                      {/* エラーがある場合は表示 */}
-                      {errorResults.length > 0 && (
-                        <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-lg mb-4">
-                          <p className="font-semibold text-yellow-800 mb-2">エラーが発生した戦略:</p>
-                          <ul className="list-disc list-inside text-yellow-700">
-                            {errorResults.map((r, idx) => (
-                              <li key={idx}>
-                                {r.strategy_name || "不明な戦略"}: {r.error}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-
-                      {/* 比較テーブルのみ表示（最適な戦略の詳細は表示しない） */}
-                      <TradingResults
-                        data={{
-                          success: true,
-                          period_years: results.period_years,
-                          comparison: comparison,
-                          best_strategy: null,  // 最適な戦略は表示しない
-                        }}
-                      />
-                    </div>
-                  );
-                });
+                );
               })()}
             </div>
           )}
-          
+
           {/* 最適な銘柄と上位2戦略を表示 */}
           {results.best_symbol && (
             <div className="mb-8 border-t-4 border-green-500 pt-8">
@@ -526,7 +555,7 @@ function SymbolComparison({ user, token }) {
                   この銘柄で最も良い2つの戦略を比較します
                 </p>
               </div>
-              
+
               {/* 既存戦略のバックテストと同じUI */}
               <TradingResults
                 data={{
@@ -536,7 +565,7 @@ function SymbolComparison({ user, token }) {
                   best_strategy: results.best_strategy || null,
                 }}
               />
-              
+
               {/* 保存機能 */}
               {user && (
                 <div className="mt-6 p-4 bg-gray-50 rounded-lg">
@@ -563,7 +592,7 @@ function SymbolComparison({ user, token }) {
           )}
         </div>
       )}
-      
+
       {results && !results.success && (
         <div className="mt-8">
           <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg text-red-700">
