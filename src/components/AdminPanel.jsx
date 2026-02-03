@@ -355,59 +355,107 @@ function AdminPanel({ user, token }) {
         </div>
       )}
 
-      {/* 銘柄比較一覧タブ */}
+      {/* 銘柄比較一覧タブ（モバイル: カード表示 / PC: テーブル） */}
       {activeTab === "comparisons" && (
         <div>
-          <h3 className="text-xl font-semibold mb-4">保存された銘柄比較一覧</h3>
+          <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">
+            保存された銘柄比較一覧
+          </h3>
           {allComparisons.length === 0 ? (
-            <p className="text-gray-600">銘柄比較がありません</p>
+            <p className="text-gray-600 text-sm sm:text-base">
+              銘柄比較がありません
+            </p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      名前
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      ユーザーID
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      最適銘柄
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      期間
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      作成日時
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {allComparisons.map((c) => (
-                    <tr key={c.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {c.name || "—"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {c.user_id ? `${c.user_id.substring(0, 8)}...` : "—"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {c.best_symbol || "—"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {c.period_years ? `${c.period_years}年` : "—"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {c.created_at
-                          ? new Date(c.created_at).toLocaleString("ja-JP")
-                          : "—"}
-                      </td>
+            <>
+              {/* モバイル: カード一覧（横スクロール不要） */}
+              <div className="block md:hidden space-y-3">
+                {allComparisons.map((c) => (
+                  <div
+                    key={c.id}
+                    className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
+                  >
+                    <div className="font-semibold text-gray-900 mb-2 truncate">
+                      {c.name || "（名前なし）"}
+                    </div>
+                    <dl className="grid grid-cols-1 gap-1.5 text-sm">
+                      <div className="flex justify-between gap-2">
+                        <dt className="text-gray-500 shrink-0">最適銘柄</dt>
+                        <dd className="text-gray-900 font-medium truncate text-right">
+                          {c.best_symbol || "—"}
+                        </dd>
+                      </div>
+                      <div className="flex justify-between gap-2">
+                        <dt className="text-gray-500 shrink-0">期間</dt>
+                        <dd className="text-gray-900">
+                          {c.period_years ? `${c.period_years}年` : "—"}
+                        </dd>
+                      </div>
+                      <div className="flex justify-between gap-2">
+                        <dt className="text-gray-500 shrink-0">ユーザーID</dt>
+                        <dd className="text-gray-600 truncate text-right">
+                          {c.user_id ? `${c.user_id.substring(0, 8)}...` : "—"}
+                        </dd>
+                      </div>
+                      <div className="flex justify-between gap-2">
+                        <dt className="text-gray-500 shrink-0">作成日時</dt>
+                        <dd className="text-gray-500 text-right">
+                          {c.created_at
+                            ? new Date(c.created_at).toLocaleString("ja-JP")
+                            : "—"}
+                        </dd>
+                      </div>
+                    </dl>
+                  </div>
+                ))}
+              </div>
+              {/* PC: テーブル */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        名前
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        ユーザーID
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        最適銘柄
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        期間
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        作成日時
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {allComparisons.map((c) => (
+                      <tr key={c.id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {c.name || "—"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          {c.user_id ? `${c.user_id.substring(0, 8)}...` : "—"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {c.best_symbol || "—"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {c.period_years ? `${c.period_years}年` : "—"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {c.created_at
+                            ? new Date(c.created_at).toLocaleString("ja-JP")
+                            : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </div>
       )}
