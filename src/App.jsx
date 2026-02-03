@@ -33,8 +33,8 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-purple-600 p-5">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-purple-600 p-3 sm:p-5 overflow-x-hidden">
+      <div className="max-w-6xl mx-auto min-w-0">
         <header className="text-center text-white mb-8">
           <h1 className="text-4xl md:text-5xl font-bold mb-3 drop-shadow-lg">
             🤖 金融取引分析 AIエージェント
@@ -44,14 +44,14 @@ function App() {
           </p>
         </header>
 
-        {/* ナビゲーション */}
+        {/* ナビゲーション（モバイル対応） */}
         {user && (
-          <div className="mb-6 bg-white rounded-lg shadow-lg p-4">
-            <div className="flex justify-between items-center">
-              <div className="flex space-x-4">
+          <div className="mb-6 bg-white rounded-lg shadow-lg p-3 sm:p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
+              <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => setActivePage("analysis")}
-                  className={`px-4 py-2 rounded ${
+                  className={`min-h-[44px] px-3 py-2.5 sm:px-4 rounded text-sm sm:text-base font-medium ${
                     activePage === "analysis"
                       ? "bg-blue-500 text-white"
                       : "bg-gray-200 text-gray-700"
@@ -61,7 +61,7 @@ function App() {
                 </button>
                 <button
                   onClick={() => setActivePage("comparison")}
-                  className={`px-4 py-2 rounded ${
+                  className={`min-h-[44px] px-3 py-2.5 sm:px-4 rounded text-sm sm:text-base font-medium ${
                     activePage === "comparison"
                       ? "bg-blue-500 text-white"
                       : "bg-gray-200 text-gray-700"
@@ -72,7 +72,7 @@ function App() {
                 {user.role === "admin" && (
                   <button
                     onClick={() => setActivePage("admin")}
-                    className={`px-4 py-2 rounded ${
+                    className={`min-h-[44px] px-3 py-2.5 sm:px-4 rounded text-sm sm:text-base font-medium ${
                       activePage === "admin"
                         ? "bg-blue-500 text-white"
                         : "bg-gray-200 text-gray-700"
@@ -82,20 +82,20 @@ function App() {
                   </button>
                 )}
               </div>
-              <div className="flex items-center space-x-4">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-4 shrink-0">
                 {user.picture && (
                   <img
                     src={user.picture}
                     alt={user.name || user.email}
-                    className="w-8 h-8 rounded-full"
+                    className="w-8 h-8 rounded-full flex-shrink-0"
                   />
                 )}
-                <span className="text-gray-700">
+                <span className="text-gray-700 text-sm sm:text-base truncate max-w-[180px] sm:max-w-none">
                   {user.name || user.email} ({user.role})
                 </span>
                 <button
                   onClick={handleLogout}
-                  className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                  className="min-h-[44px] bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded text-sm sm:text-base"
                 >
                   ログアウト
                 </button>

@@ -340,9 +340,13 @@ function SymbolComparison({ user, token }) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">銘柄毎比較</h2>
-      <p className="text-gray-600 mb-6">複数の戦略を複数の銘柄で比較します</p>
+    <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 overflow-hidden">
+      <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 text-gray-800">
+        銘柄毎比較
+      </h2>
+      <p className="text-gray-600 text-sm sm:text-base mb-4 sm:mb-6">
+        複数の戦略を複数の銘柄で比較します
+      </p>
 
       {/* 保存した銘柄比較一覧（ログイン時のみ） */}
       {user && (
@@ -589,13 +593,17 @@ function SymbolComparison({ user, token }) {
       {loading && <Loading />}
 
       {results && results.success && (
-        <div className="mt-8">
-          <h3 className="text-xl font-semibold mb-4">比較結果</h3>
+        <div className="mt-6 sm:mt-8 overflow-hidden">
+          <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">
+            比較結果
+          </h3>
 
           {/* 全銘柄の結果を表示 */}
           {results.all_results && results.all_results.length > 0 && (
-            <div className="mb-8">
-              <h4 className="text-lg font-semibold mb-4">全銘柄の分析結果</h4>
+            <div className="mb-6 sm:mb-8">
+              <h4 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">
+                全銘柄の分析結果
+              </h4>
 
               {/* 銘柄毎に結果をグループ化 */}
               {(() => {
@@ -649,18 +657,18 @@ function SymbolComparison({ user, token }) {
                     }));
 
                     return (
-                      <div key={symbol} className="mb-8">
-                        <h5 className="text-2xl font-bold text-indigo-600 mb-4">
+                      <div key={symbol} className="mb-6 sm:mb-8">
+                        <h5 className="text-lg sm:text-2xl font-bold text-indigo-600 mb-3 sm:mb-4">
                           {symbol} の戦略比較結果
                         </h5>
 
                         {/* エラーがある場合は表示 */}
                         {errorResults.length > 0 && (
-                          <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-lg mb-4">
-                            <p className="font-semibold text-yellow-800 mb-2">
+                          <div className="bg-yellow-50 border-l-4 border-yellow-500 p-3 sm:p-4 rounded-lg mb-3 sm:mb-4">
+                            <p className="font-semibold text-yellow-800 mb-2 text-sm sm:text-base">
                               エラーが発生した戦略:
                             </p>
-                            <ul className="list-disc list-inside text-yellow-700">
+                            <ul className="list-disc list-inside text-yellow-700 text-sm sm:text-base">
                               {errorResults.map((r, idx) => (
                                 <li key={idx}>
                                   {r.strategy_name || "不明な戦略"}: {r.error}
@@ -689,12 +697,12 @@ function SymbolComparison({ user, token }) {
 
           {/* 最適な銘柄と上位2戦略を表示 */}
           {results.best_symbol && (
-            <div className="mb-8 border-t-4 border-green-500 pt-8">
-              <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg mb-4">
-                <h4 className="text-2xl font-bold text-green-700 mb-2">
+            <div className="mb-6 sm:mb-8 border-t-4 border-green-500 pt-6 sm:pt-8">
+              <div className="bg-green-50 border-l-4 border-green-500 p-3 sm:p-4 rounded-lg mb-3 sm:mb-4">
+                <h4 className="text-xl sm:text-2xl font-bold text-green-700 mb-1 sm:mb-2">
                   最適な銘柄: {results.best_symbol}
                 </h4>
-                <p className="text-green-700">
+                <p className="text-sm sm:text-base text-green-700">
                   この銘柄で最も良い2つの戦略を比較します
                 </p>
               </div>
@@ -709,22 +717,24 @@ function SymbolComparison({ user, token }) {
                 }}
               />
 
-              {/* 保存機能 */}
+              {/* 保存機能（モバイルで縦並び） */}
               {user && (
-                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                  <h5 className="text-lg font-semibold mb-2">結果を保存</h5>
-                  <div className="flex gap-2">
+                <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-gray-50 rounded-lg">
+                  <h5 className="text-base sm:text-lg font-semibold mb-2">
+                    結果を保存
+                  </h5>
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <input
                       type="text"
                       value={comparisonName}
                       onChange={(e) => setComparisonName(e.target.value)}
-                      placeholder="比較結果の名前を入力（例: 2024年1月の比較）"
-                      className="flex-1 shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                      placeholder="比較結果の名前を入力"
+                      className="flex-1 min-w-0 shadow appearance-none border rounded py-2 px-3 text-gray-700 text-sm sm:text-base leading-tight focus:outline-none focus:shadow-outline"
                     />
                     <button
                       onClick={handleSaveComparison}
                       disabled={saving || !comparisonName.trim()}
-                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50"
+                      className="min-h-[44px] bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 shrink-0"
                     >
                       {saving ? "保存中..." : "保存"}
                     </button>
