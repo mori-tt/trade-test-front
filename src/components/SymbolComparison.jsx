@@ -45,7 +45,7 @@ function SymbolComparison({ user, token }) {
   useEffect(() => {
     loadSavedStrategies();
     loadExistingStrategies();
-    if (user && token) {
+    if (user || localStorage.getItem("access_token")) {
       loadSavedComparisons();
     }
   }, [user, token]);
@@ -93,7 +93,7 @@ function SymbolComparison({ user, token }) {
         headers: { Authorization: `Bearer ${tokenToUse}` },
       });
       const data = await response.json();
-      if (data.success && data.comparisons) {
+      if (data.success && Array.isArray(data.comparisons)) {
         setSavedComparisons(data.comparisons);
       } else {
         setSavedComparisons([]);
