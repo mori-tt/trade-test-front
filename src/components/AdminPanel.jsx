@@ -6,7 +6,8 @@ function AdminPanel({ user, token }) {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [userStrategies, setUserStrategies] = useState([]);
   const [allStrategies, setAllStrategies] = useState([]);
-  const [activeTab, setActiveTab] = useState("users"); // "users" or "strategies"
+  const [allComparisons, setAllComparisons] = useState([]);
+  const [activeTab, setActiveTab] = useState("users"); // "users" | "strategies" | "comparisons"
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -72,6 +73,28 @@ function AdminPanel({ user, token }) {
       }
     } catch (error) {
       console.error("戦略読み込みエラー:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadAllComparisons = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(getApiUrl("/api/admin/comparisons"), {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
+      if (data.success && data.comparisons) {
+        setAllComparisons(data.comparisons);
+      } else {
+        setAllComparisons([]);
+      }
+    } catch (error) {
+      console.error("銘柄比較読み込みエラー:", error);
+      setAllComparisons([]);
     } finally {
       setLoading(false);
     }
@@ -146,6 +169,19 @@ function AdminPanel({ user, token }) {
         >
           全戦略一覧
         </button>
+        <button
+          onClick={() => {
+            setActiveTab("comparisons");
+            loadAllComparisons();
+          }}
+          className={`px-4 py-2 font-medium ${
+            activeTab === "comparisons"
+              ? "text-blue-600 border-b-2 border-blue-600"
+              : "text-gray-600"
+          }`}
+        >
+          銘柄比較一覧
+        </button>
       </div>
 
       {loading && <p className="text-gray-600">読み込み中...</p>}
@@ -214,7 +250,8 @@ function AdminPanel({ user, token }) {
           {selectedUserId && (
             <div className="mt-8">
               <h3 className="text-xl font-semibold mb-4">
-                ユーザーの戦略（{users.find((u) => u.id === selectedUserId)?.email}）
+                ユーザーの戦略（
+                {users.find((u) => u.id === selectedUserId)?.email}）
               </h3>
               {userStrategies.length === 0 ? (
                 <p className="text-gray-600">戦略がありません</p>
@@ -308,6 +345,63 @@ function AdminPanel({ user, token }) {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {new Date(s.created_at).toLocaleString("ja-JP")}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 銘柄比較一覧タブ */}
+      {activeTab === "comparisons" && (
+        <div>
+          <h3 className="text-xl font-semibold mb-4">保存された銘柄比較一覧</h3>
+          {allComparisons.length === 0 ? (
+            <p className="text-gray-600">銘柄比較がありません</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      名前
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      ユーザーID
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      最適銘柄
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      期間
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      作成日時
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {allComparisons.map((c) => (
+                    <tr key={c.id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {c.name || "—"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {c.user_id ? `${c.user_id.substring(0, 8)}...` : "—"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {c.best_symbol || "—"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {c.period_years ? `${c.period_years}年` : "—"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {c.created_at
+                          ? new Date(c.created_at).toLocaleString("ja-JP")
+                          : "—"}
                       </td>
                     </tr>
                   ))}

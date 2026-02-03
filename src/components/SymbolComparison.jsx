@@ -39,10 +39,15 @@ function SymbolComparison({ user, token }) {
   const [existingStrategies, setExistingStrategies] = useState([]);
   const [saving, setSaving] = useState(false);
   const [comparisonName, setComparisonName] = useState("");
+  const [savedComparisons, setSavedComparisons] = useState([]);
+  const [loadingComparisons, setLoadingComparisons] = useState(false);
 
   useEffect(() => {
     loadSavedStrategies();
     loadExistingStrategies();
+    if (user && token) {
+      loadSavedComparisons();
+    }
   }, [user, token]);
 
   const loadSavedStrategies = async () => {
@@ -76,6 +81,83 @@ function SymbolComparison({ user, token }) {
       }
     } catch (error) {
       console.error("既存戦略読み込みエラー:", error);
+    }
+  };
+
+  const loadSavedComparisons = async () => {
+    const tokenToUse = token || localStorage.getItem("access_token");
+    if (!tokenToUse) return;
+    setLoadingComparisons(true);
+    try {
+      const response = await fetch(getApiUrl("/api/trading/comparisons"), {
+        headers: { Authorization: `Bearer ${tokenToUse}` },
+      });
+      const data = await response.json();
+      if (data.success && data.comparisons) {
+        setSavedComparisons(data.comparisons);
+      } else {
+        setSavedComparisons([]);
+      }
+    } catch (error) {
+      console.error("保存比較一覧読み込みエラー:", error);
+      setSavedComparisons([]);
+    } finally {
+      setLoadingComparisons(false);
+    }
+  };
+
+  const handleViewSavedComparison = async (comparisonId) => {
+    const tokenToUse = token || localStorage.getItem("access_token");
+    if (!tokenToUse) return;
+    try {
+      const response = await fetch(
+        getApiUrl(`/api/trading/comparisons/${comparisonId}`),
+        { headers: { Authorization: `Bearer ${tokenToUse}` } }
+      );
+      const data = await response.json();
+      if (!data.success || !data.comparison) {
+        alert("比較結果の取得に失敗しました");
+        return;
+      }
+      const c = data.comparison;
+      const topStrategies = c.top_strategies || [];
+      const comparison = topStrategies.map((t) => ({
+        strategy_name: t.strategy_name || t.name || "不明な戦略",
+        total_trades: t.total_trades ?? t.results?.total_trades ?? 0,
+        win_rate: t.win_rate ?? t.results?.win_rate ?? null,
+        expected_value: t.expected_value ?? t.results?.expected_value ?? null,
+        total_return: t.total_return ?? t.results?.total_return ?? null,
+        sharpe_ratio: t.sharpe_ratio ?? t.results?.sharpe_ratio ?? null,
+      }));
+      setResults({
+        success: true,
+        best_symbol: c.best_symbol,
+        period_years: c.period_years ?? 3,
+        comparison,
+        best_strategy: null,
+      });
+    } catch (error) {
+      alert("比較結果の取得に失敗しました: " + error.message);
+    }
+  };
+
+  const handleDeleteSavedComparison = async (comparisonId) => {
+    if (!confirm("この比較結果を削除しますか？")) return;
+    const tokenToUse = token || localStorage.getItem("access_token");
+    if (!tokenToUse) return;
+    try {
+      const response = await fetch(
+        getApiUrl(`/api/trading/comparisons/${comparisonId}`),
+        { method: "DELETE", headers: { Authorization: `Bearer ${tokenToUse}` } }
+      );
+      const data = await response.json();
+      if (data.success) {
+        loadSavedComparisons();
+      } else {
+        alert("削除に失敗しました: " + (data.detail || ""));
+      }
+    } catch (error) {
+      alert("削除に失敗しました: " + error.message);
     }
   };
 
@@ -237,6 +319,7 @@ function SymbolComparison({ user, token }) {
       if (data.success) {
         alert("比較結果を保存しました");
         setComparisonName(""); // リセット
+        loadSavedComparisons();
       } else if (response.status === 401) {
         // 認証エラー時はトークンを破棄して再ログインを促す
         localStorage.removeItem("access_token");
@@ -260,6 +343,57 @@ function SymbolComparison({ user, token }) {
     <div className="bg-white rounded-lg shadow-lg p-6">
       <h2 className="text-2xl font-bold mb-4 text-gray-800">銘柄毎比較</h2>
       <p className="text-gray-600 mb-6">複数の戦略を複数の銘柄で比較します</p>
+
+      {/* 保存した銘柄比較一覧（ログイン時のみ） */}
+      {user && (
+        <div className="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            保存した銘柄比較
+          </h3>
+          {loadingComparisons ? (
+            <p className="text-gray-500 text-sm">読み込み中...</p>
+          ) : savedComparisons.length === 0 ? (
+            <p className="text-gray-500 text-sm">保存した比較はありません</p>
+          ) : (
+            <ul className="space-y-2">
+              {savedComparisons.map((comp) => (
+                <li
+                  key={comp.id}
+                  className="flex flex-wrap items-center justify-between gap-2 py-2 px-3 bg-white rounded border border-gray-200 hover:bg-gray-50"
+                >
+                  <span className="font-medium text-gray-800">
+                    {comp.name || "（名前なし）"}
+                  </span>
+                  <span className="text-gray-600 text-sm">
+                    最適銘柄: {comp.best_symbol || "—"}
+                  </span>
+                  <span className="text-gray-500 text-sm">
+                    {comp.created_at
+                      ? new Date(comp.created_at).toLocaleString("ja-JP")
+                      : ""}
+                  </span>
+                  <span className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleViewSavedComparison(comp.id)}
+                      className="text-sm bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 rounded"
+                    >
+                      表示
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteSavedComparison(comp.id)}
+                      className="text-sm bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                    >
+                      削除
+                    </button>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit}>
         {/* 戦略選択 */}
